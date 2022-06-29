@@ -92,7 +92,20 @@ func StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBullet
 	go bullet_girl.StartTimingBullet(timingBulletCtx)
 	log.Println("定时弹幕已开启...")
 
+	// 开启弹幕机器人
+	go bullet_girl.StartBulletRobot(robotBulletCtx)
+	log.Println("弹幕机器人已开启")
+
+	// 开启弹幕抓取
+	go bullet_girl.StartCatchBullet(catchBulletCtx)
+	log.Println("弹幕抓取已开启...")
+
+	// 开启弹幕处理
+	go bullet_girl.HandleBullet(handleBulletCtx)
+	log.Println("弹幕处理已开启...")
+
 	// 指定弹幕定时任务
+	time.Sleep(time.Second) // 现开启定时任务弹幕再推送，这个方法很low，暂且这样吧
 	bullet_girl.PushToBulletEvent(
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
@@ -113,16 +126,4 @@ func StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBullet
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
 				bullet_girl.NewBullet("无聊的同学可以找橘子聊天喔！", "*/13 * * * * *"))))
-
-	// 开启弹幕机器人
-	go bullet_girl.StartBulletRobot(robotBulletCtx)
-	log.Println("弹幕机器人已开启")
-
-	// 开启弹幕抓取
-	go bullet_girl.StartCatchBullet(catchBulletCtx)
-	log.Println("弹幕抓取已开启...")
-
-	// 开启弹幕处理
-	go bullet_girl.HandleBullet(handleBulletCtx)
-	log.Println("弹幕处理已开启...")
 }
