@@ -64,7 +64,6 @@ func main() {
 			if info, err = http.RoomInit(); err != nil {
 				log.Println("http请求错误：", err)
 			}
-			log.Println("正在检测直播间是否开播...")
 			if info.Data.LiveStatus == entity.Live && preStatus == entity.NotStarted { // 由NotStarted到Live是开播
 				log.Println("开播啦！")
 				preStatus = entity.Live
@@ -101,15 +100,19 @@ func StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBullet
 	bullet_girl.PushToBulletEvent(
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
-				bullet_girl.NewBullet("喜欢主播可以加入粉丝团哦～", "*/4 * * * * *"))))
+				bullet_girl.NewBullet("喜欢主播可以加入粉丝团哦～", "*/5 * * * * *"))))
 	bullet_girl.PushToBulletEvent(
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
-				bullet_girl.NewBullet("主播今天很可爱哦！干巴爹！", "*/10 * * * * *"))))
+				bullet_girl.NewBullet("主播今天很可爱哦！干巴爹！", "*/17 * * * * *"))))
 	bullet_girl.PushToBulletEvent(
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
-				bullet_girl.NewBullet("哇酷哇酷", "*/15 * * * * *"))))
+				bullet_girl.NewBullet("哇酷哇酷", "*/18 * * * * *"))))
+	bullet_girl.PushToBulletEvent(
+		bullet_girl.NewBulletEvent(
+			bullet_girl.Save, bullet_girl.NewBulletTask(
+				bullet_girl.NewBullet("无聊的同学可以找橘子聊天喔！", "*/13 * * * * *"))))
 
 	// 开启弹幕机器人
 	go bullet_girl.StartBulletRobot(robotBulletCtx)

@@ -126,13 +126,14 @@ func welcomeCaptain(s string) string {
 	b := strings.Contains(s, "舰长")
 
 	// 获取名称
-	s = strings.TrimPrefix(s, "\u003c% ")
-	s = strings.TrimRight(s, " %\u003e")
+	zh := []rune(s)
+	zh = []rune(strings.TrimPrefix(s, "<% "))
+	zh = []rune(strings.TrimRight(s, " %>"))
 
 	if b {
-		return "欢迎舰长：" + s
+		return "欢迎舰长：" + string(zh)
 	} else {
-		return "欢迎" + s
+		return "欢迎" + string(zh)
 	}
 }
 
