@@ -1,9 +1,9 @@
-package live_func
+package bullet_girl
 
 import (
 	"context"
-	"fmt"
 	"github.com/gorhill/cronexpr"
+	"log"
 	"time"
 )
 
@@ -13,7 +13,7 @@ const (
 )
 
 // 调度表
-var Btt *BulletTaskTable
+var scheduler *BulletTaskScheduler
 var id = 0
 
 // 弹幕
@@ -37,7 +37,7 @@ type BulletEvent struct {
 }
 
 // 定时弹幕任务调度表
-type BulletTaskTable struct {
+type BulletTaskScheduler struct {
 	table     map[int]*BulletTask
 	eventChan chan *BulletEvent
 }
@@ -62,22 +62,19 @@ func NewBulletEvent(spec int, bt *BulletTask) *BulletEvent {
 	}
 }
 
-func InitBulletTaskTable() {
-	Btt = &BulletTaskTable{
-		table:     make(map[int]*BulletTask),
-		eventChan: make(chan *BulletEvent, 1000),
-	}
-}
-
-func PushBulletEvent(be *BulletEvent) {
-	Btt.eventChan <- be
+func PushToBulletEvent(be *BulletEvent) {
+	log.Println("PushBulletEvent成功", be.bulletTask.bullet.msg)
+	scheduler.eventChan <- be
 }
 
 // 定时弹幕任务调度
 func StartTimingBullet(ctx context.Context) {
 
 	// 初始化任务表
-	InitBulletTaskTable()
+	scheduler = &BulletTaskScheduler{
+		table:     make(map[int]*BulletTask),
+		eventChan: make(chan *BulletEvent, 1000),
+	}
 
 	var be *BulletEvent
 
@@ -89,7 +86,7 @@ func StartTimingBullet(ctx context.Context) {
 	for {
 		select {
 		// 事件处理
-		case be = <-Btt.eventChan:
+		case be = <-scheduler.eventChan:
 			HandleBulletEvent(be)
 		// 关闭goroutine
 		case <-ctx.Done():
@@ -108,9 +105,10 @@ END:
 func HandleBulletEvent(be *BulletEvent) {
 	switch be.spec {
 	case Save:
-		Btt.table[be.bulletTask.bullet.id] = be.bulletTask
+		log.Println("task保存成功", be.bulletTask.bullet.msg)
+		scheduler.table[be.bulletTask.bullet.id] = be.bulletTask
 	case Remove:
-		delete(Btt.table, be.bulletTask.bullet.id)
+		delete(scheduler.table, be.bulletTask.bullet.id)
 	}
 }
 
@@ -120,12 +118,11 @@ func CalculateAndRun() time.Duration {
 	var interval *time.Time
 	now := time.Now()
 
-	for _, bt := range Btt.table {
+	for _, bt := range scheduler.table {
 
 		// 执行到期任务
 		if now.Equal(bt.next) || now.After(bt.next) {
-			fmt.Println("send bullet screen:", bt.bullet.msg)
-			SendBullet(bt.bullet.msg)
+			PushToBulletSender(bt.bullet.msg)
 			bt.next = bt.expr.Next(now) // 更新下一次执行时间
 		}
 

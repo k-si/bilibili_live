@@ -1,0 +1,14 @@
+# 直播间id
+room_id = 25198571
+
+# 小破站弹幕服务器地址，不用改
+ws_server_url = "wss://broadcastlv.chat.bilibili.com:2245/sub"
+
+# 登录二维码生成到哪个路径，目前是生成在项目根目录下
+qr_code_path = "login_bili.png"
+
+# 触发聊天机器人的前缀，比如"橘子，你好呀"，不带"橘子，"就不会触发机器人了
+talk_robot_cmd = "橘子，"
+
+# 机器人名称
+robot_name = "橘子"
