@@ -138,5 +138,10 @@ func welcomeCaptain(s string) string {
 }
 
 func welcomeInteract(name string) string {
-	return "欢迎" + name
+	if strings.Contains(name, "欢迎") {
+		return name
+	} else {
+		return "欢迎" + name
+	}
+
 }
