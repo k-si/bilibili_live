@@ -121,7 +121,7 @@ func CalculateAndRun() time.Duration {
 	for _, bt := range scheduler.table {
 
 		// 执行到期任务
-		if now.Equal(bt.next) || now.After(bt.next) {
+		if bt.next.Before(now) || bt.next.Equal(now) {
 			PushToBulletSender(bt.bullet.msg)
 			bt.next = bt.expr.Next(now) // 更新下一次执行时间
 		}
@@ -134,8 +134,8 @@ func CalculateAndRun() time.Duration {
 
 	// 没有任务固定等待1s
 	if interval == nil {
-		return 1 * time.Second
+		return time.Second
 	}
 
-	return (*interval).Sub(now)
+	return (*interval).Sub(time.Now())
 }
