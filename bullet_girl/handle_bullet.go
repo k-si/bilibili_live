@@ -143,5 +143,4 @@ func welcomeInteract(name string) string {
 	} else {
 		return "欢迎" + name
 	}
-
 }

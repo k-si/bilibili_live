@@ -13,8 +13,35 @@ import (
 	"time"
 )
 
+var sendBulletCtx context.Context
+var sendBulletCancel context.CancelFunc
+var timingBulletCtx context.Context
+var timingBulletCancel context.CancelFunc
+var robotBulletCtx context.Context
+var robotBulletCancel context.CancelFunc
+var catchBulletCtx context.Context
+var catchBulletCancel context.CancelFunc
+var handleBulletCtx context.Context
+var handleBulletCancel context.CancelFunc
+
 func main() {
 	var err error
+
+	if sendBulletCancel != nil {
+		defer sendBulletCancel()
+	}
+	if timingBulletCancel != nil {
+		defer timingBulletCancel()
+	}
+	if robotBulletCancel != nil {
+		defer robotBulletCancel()
+	}
+	if catchBulletCancel != nil {
+		defer catchBulletCancel()
+	}
+	if handleBulletCancel != nil {
+		defer handleBulletCancel()
+	}
 
 	// 初始化配置文件，http客户端
 	if err = config.InitConfig(); err != nil {
@@ -26,18 +53,6 @@ func main() {
 	if err = bullet_girl.UserLogin(); err != nil {
 		log.Fatal("用户登录失败：", err)
 	}
-
-	// 弹幕姬各goroutine上下文
-	sendBulletCtx, sendBulletCancel := context.WithCancel(context.Background())
-	timingBulletCtx, timingBulletCancel := context.WithCancel(context.Background())
-	robotBulletCtx, robotBulletCancel := context.WithCancel(context.Background())
-	catchBulletCtx, catchBulletCancel := context.WithCancel(context.Background())
-	handleBulletCtx, handleBulletCancel := context.WithCancel(context.Background())
-	defer sendBulletCancel()
-	defer timingBulletCancel()
-	defer robotBulletCancel()
-	defer catchBulletCancel()
-	defer handleBulletCancel()
 
 	// 准备select中用到的变量
 	sig := make(chan os.Signal)
@@ -67,6 +82,13 @@ func main() {
 			if info.Data.LiveStatus == entity.Live && preStatus == entity.NotStarted { // 由NotStarted到Live是开播
 				log.Println("开播啦！")
 				preStatus = entity.Live
+				// 弹幕姬各goroutine上下文
+				sendBulletCtx, sendBulletCancel = context.WithCancel(context.Background())
+				timingBulletCtx, timingBulletCancel = context.WithCancel(context.Background())
+				robotBulletCtx, robotBulletCancel = context.WithCancel(context.Background())
+				catchBulletCtx, catchBulletCancel = context.WithCancel(context.Background())
+				handleBulletCtx, handleBulletCancel = context.WithCancel(context.Background())
+
 				StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBulletCtx, handleBulletCtx) // 开启弹幕姬
 			} else if info.Data.LiveStatus == entity.NotStarted && preStatus == entity.Live { // 由Live到NotStarted是下播
 				log.Println("下播啦！")
@@ -121,9 +143,5 @@ func StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBullet
 	bullet_girl.PushToBulletEvent(
 		bullet_girl.NewBulletEvent(
 			bullet_girl.Save, bullet_girl.NewBulletTask(
-				bullet_girl.NewBullet("哇酷哇酷", "*/18 * * * * *"))))
-	bullet_girl.PushToBulletEvent(
-		bullet_girl.NewBulletEvent(
-			bullet_girl.Save, bullet_girl.NewBulletTask(
-				bullet_girl.NewBullet("无聊的同学可以找橘子聊天喔！", "*/13 * * * * *"))))
+				bullet_girl.NewBullet("无聊的同学可以找橘子聊天喔！", "*/23 * * * * *"))))
 }
