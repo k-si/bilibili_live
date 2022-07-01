@@ -104,6 +104,12 @@ func handle(message []byte) {
 					interact := &entity.InteractWordText{}
 					_ = json.Unmarshal(body, interact)
 					PushToBulletSender(welcomeInteract(interact.Data.Uname))
+
+				// 感谢礼物
+				case sendGift:
+					send := &entity.SendGiftText{}
+					_ = json.Unmarshal(body, send)
+					pushToGiftChan(send)
 				}
 			}
 		case heartOrCertification:
@@ -122,19 +128,10 @@ func handle(message []byte) {
 // 欢迎舰长语句
 func welcomeCaptain(s string) string {
 
-	// 判断是否舰长
-	b := strings.Contains(s, "舰长")
+	s = strings.Replace(s, "\u003c%", "", 1)
+	s = strings.Replace(s, "%\u003e", "", 1)
 
-	// 获取名称
-	zh := []rune(s)
-	zh = []rune(strings.TrimPrefix(s, "<% "))
-	zh = []rune(strings.TrimRight(s, " %>"))
-
-	if b {
-		return "欢迎舰长：" + string(zh)
-	} else {
-		return "欢迎" + string(zh)
-	}
+	return s
 }
 
 func welcomeInteract(name string) string {

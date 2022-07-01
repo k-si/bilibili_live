@@ -36,7 +36,7 @@ func StartSendBullet(ctx context.Context) {
 			} else {
 				log.Println("弹幕发送成功：", msg)
 			}
-			time.Sleep(3 * time.Second) // 防止弹幕发送过快
+			time.Sleep(4 * time.Second) // 防止弹幕发送过快
 		}
 	}
 END:
