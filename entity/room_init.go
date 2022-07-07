@@ -6,6 +6,10 @@ const (
 	Carousel   = 2 // 轮播中
 )
 
+type RoomInitStatus struct {
+	Code int `json:"code"`
+}
+
 type RoomInitInfo struct {
 	Data struct {
 		LiveStatus int `json:"live_status"`

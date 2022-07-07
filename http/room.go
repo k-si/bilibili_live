@@ -5,6 +5,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/k-si/bili_live/config"
 	"github.com/k-si/bili_live/entity"
+	"github.com/k-si/bili_live/errs"
 	"log"
 	"strconv"
 )
@@ -20,10 +21,22 @@ func RoomInit() (*entity.RoomInitInfo, error) {
 		log.Println("请求room_init失败：", err)
 		return nil, err
 	}
-	r := &entity.RoomInitInfo{}
-	if err = json.Unmarshal(resp.Body(), r); err != nil {
+	status := &entity.RoomInitStatus{}
+	if err = json.Unmarshal(resp.Body(), status); err != nil {
 		log.Println("Unmarshal失败：", err, "body:", string(resp.Body()))
 		return nil, err
+	}
+
+	r := &entity.RoomInitInfo{}
+	if status.Code == 0 {
+		if err = json.Unmarshal(resp.Body(), r); err != nil {
+			log.Println("Unmarshal失败：", err, "body:", string(resp.Body()))
+			return nil, err
+		}
+	}
+
+	if status.Code == 60004 {
+		return nil, errs.RoomIdNotExistErr
 	}
 
 	return r, err

@@ -5,7 +5,9 @@ import (
 	"github.com/k-si/bili_live/bullet_girl"
 	"github.com/k-si/bili_live/config"
 	"github.com/k-si/bili_live/entity"
+	"github.com/k-si/bili_live/errs"
 	"github.com/k-si/bili_live/http"
+	"github.com/k-si/bili_live/util"
 	"log"
 	"os"
 	"os/signal"
@@ -57,7 +59,7 @@ func main() {
 	http.InitHttpClient()
 
 	// 扫码登录
-	if err = bullet_girl.UserLogin(); err != nil {
+	if err = UserLogin(); err != nil {
 		log.Fatal("用户登录失败：", err)
 	}
 
@@ -84,7 +86,12 @@ func main() {
 		case <-t.C:
 			t.Reset(interval)
 			if info, err = http.RoomInit(); err != nil {
-				log.Println("http请求错误：", err)
+				log.Println("RoomInit错误：", err)
+
+				// 下播长时间后，房间号可能被取消
+				if err == errs.RoomIdNotExistErr {
+					continue
+				}
 			}
 			if info.Data.LiveStatus == entity.Live && preStatus == entity.NotStarted { // 由NotStarted到Live是开播
 				log.Println("开播啦！")
@@ -106,7 +113,7 @@ func main() {
 				robotBulletCancel()
 				catchBulletCancel()
 				handleBulletCancel()
-				thankGiftCancel()// 关闭弹幕姬goroutine
+				thankGiftCancel() // 关闭弹幕姬goroutine
 			}
 		}
 	}
@@ -159,52 +166,75 @@ func StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBullet
 				bullet_girl.NewBullet("无聊的同学可以找橘子聊天喔！", "*/23 * * * * *"))))
 }
 
-func main_test() {
-	sendBulletCtx, sendBulletCancel = context.WithCancel(context.Background())
-	timingBulletCtx, timingBulletCancel = context.WithCancel(context.Background())
-	robotBulletCtx, robotBulletCancel = context.WithCancel(context.Background())
-	catchBulletCtx, catchBulletCancel = context.WithCancel(context.Background())
-	handleBulletCtx, handleBulletCancel = context.WithCancel(context.Background())
-	thanksGiftCtx, thankGiftCancel = context.WithCancel(context.Background())
-
+// 先登录，获取cookie
+func UserLogin() error {
 	var err error
+	var loginUrl *entity.LoginUrl
 
-	defer func() {
-		if sendBulletCancel != nil {
-			sendBulletCancel()
-		}
-		if timingBulletCancel != nil {
-			timingBulletCancel()
-		}
-		if robotBulletCancel != nil {
-			robotBulletCancel()
-		}
-		if catchBulletCancel != nil {
-			catchBulletCancel()
-		}
-		if handleBulletCancel != nil {
-			handleBulletCancel()
-		}
-		if thankGiftCancel != nil {
-			thankGiftCancel()
-		}
-	}()
-
-	// 初始化配置文件，http客户端
-	if err = config.InitConfig(); err != nil {
-		log.Fatal("配置文件错误：", err)
-	}
-	http.InitHttpClient()
-
-	// 扫码登录
-	if err = bullet_girl.UserLogin(); err != nil {
-		log.Fatal("用户登录失败：", err)
+	if loginUrl, err = http.GetLoginUrl(); err != nil {
+		log.Println(err)
+		return err
 	}
 
-	StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBulletCtx, handleBulletCtx, thanksGiftCtx) // 开启弹幕姬
+	if err = util.GenerateQrcode(loginUrl.Data.Url); err != nil {
+		log.Println(err)
+		return err
+	}
 
-	// 准备select中用到的变量
-	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	if _, err = http.GetLoginInfo(loginUrl.Data.OauthKey); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return err
 }
+
+//func main_test() {
+//	sendBulletCtx, sendBulletCancel = context.WithCancel(context.Background())
+//	timingBulletCtx, timingBulletCancel = context.WithCancel(context.Background())
+//	robotBulletCtx, robotBulletCancel = context.WithCancel(context.Background())
+//	catchBulletCtx, catchBulletCancel = context.WithCancel(context.Background())
+//	handleBulletCtx, handleBulletCancel = context.WithCancel(context.Background())
+//	thanksGiftCtx, thankGiftCancel = context.WithCancel(context.Background())
+//
+//	var err error
+//
+//	defer func() {
+//		if sendBulletCancel != nil {
+//			sendBulletCancel()
+//		}
+//		if timingBulletCancel != nil {
+//			timingBulletCancel()
+//		}
+//		if robotBulletCancel != nil {
+//			robotBulletCancel()
+//		}
+//		if catchBulletCancel != nil {
+//			catchBulletCancel()
+//		}
+//		if handleBulletCancel != nil {
+//			handleBulletCancel()
+//		}
+//		if thankGiftCancel != nil {
+//			thankGiftCancel()
+//		}
+//	}()
+//
+//	// 初始化配置文件，http客户端
+//	if err = config.InitConfig(); err != nil {
+//		log.Fatal("配置文件错误：", err)
+//	}
+//	http.InitHttpClient()
+//
+//	// 扫码登录
+//	if err = UserLogin(); err != nil {
+//		log.Fatal("用户登录失败：", err)
+//	}
+//
+//	StartBulletGirl(sendBulletCtx, timingBulletCtx, robotBulletCtx, catchBulletCtx, handleBulletCtx, thanksGiftCtx) // 开启弹幕姬
+//
+//	// 准备select中用到的变量
+//	sig := make(chan os.Signal)
+//	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+//	<-sig
+//}
