@@ -73,7 +73,7 @@ func summarizeGift() {
 		}
 
 		// 总打赏高于x元，加一句大气
-		if sumCost >= 200 { // 2元
+		if sumCost >= 2000 { // 2元
 			PushToBulletSender("老板大气大气")
 		}
 		delete(thanksGiver.giftTable, name)

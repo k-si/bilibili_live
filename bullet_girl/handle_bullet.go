@@ -99,11 +99,11 @@ func handle(message []byte) {
 					_ = json.Unmarshal(body, entry)
 					PushToBulletSender(welcomeCaptain(entry.Data.CopyWriting))
 
-				// 欢迎进入房间
-				case interactWord:
-					interact := &entity.InteractWordText{}
-					_ = json.Unmarshal(body, interact)
-					PushToBulletSender(welcomeInteract(interact.Data.Uname))
+				// 欢迎进入房间（该功能会欢迎所有进入房间的人，可能会造成刷屏）
+				//case interactWord:
+				//	interact := &entity.InteractWordText{}
+				//	_ = json.Unmarshal(body, interact)
+				//	PushToBulletSender(welcomeInteract(interact.Data.Uname))
 
 				// 感谢礼物
 				case sendGift:

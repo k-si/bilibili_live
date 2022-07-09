@@ -85,13 +85,9 @@ func main() {
 		// 每1分钟检查一次直播间是否开播
 		case <-t.C:
 			t.Reset(interval)
-			if info, err = http.RoomInit(); err != nil {
+			if info, err = http.RoomInit(); err != nil || err == errs.RoomIdNotExistErr{
 				log.Println("RoomInit错误：", err)
-
-				// 下播长时间后，房间号可能被取消
-				if err == errs.RoomIdNotExistErr {
-					continue
-				}
+				continue
 			}
 			if info.Data.LiveStatus == entity.Live && preStatus == entity.NotStarted { // 由NotStarted到Live是开播
 				log.Println("开播啦！")
